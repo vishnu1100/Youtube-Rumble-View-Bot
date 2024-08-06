@@ -318,6 +318,7 @@ function startWorker(job, worker, userDataDir, wtfp) {
 
         let bot = new botType({
             headless: settings.headless,
+            ignorePluginsStealth: true,
             userDataDir: path.join(__dirname, `../cache/raw_guest/${userDataDir}`),
             proxy: job.proxy,
             autoSkipAds: settings.auto_skip_ads,

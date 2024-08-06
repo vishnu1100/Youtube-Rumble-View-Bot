@@ -1,8 +1,18 @@
-const { app, BrowserWindow, shell } = require('electron')
+/*const { app, BrowserWindow, shell } = require('electron')
 const { spawn } = require("child_process")
 const path = require("path")
-require("ansicolor").nice
+require("ansicolor").nice*/
 
+import { app, BrowserWindow, shell } from 'electron';
+import { spawn } from "child_process";
+import * as path from "path";
+import * as ansicolor from "ansicolor";
+ansicolor.nice
+
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+    
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 function runServer() {
     return new Promise((resolve, reject) => {
