@@ -57,7 +57,7 @@ The YouTube&Rumble Watch Bot comes equipped with an impressive array of features
 - 🎨 Unleash Your Creativity: Customize every aspect of the program, including extensions and settings, to align with your unique needs and vision.
 - 🧵 Multithreaded Performance: Harness the power of multitasking as our program supports up to 200 workers simultaneously, all while minimizing CPU usage.
 - 🎬 Diverse Video Watching Methods: Employ various techniques to watch videos, boosting your search engine optimization (SEO) efforts and expanding your reach.
-- 🌐 Bandwidth Optimization: Our program is optimized to utilize minimal bandwidth, consuming less than 1 megabit per minute per worker.
+- 🌐 Bandwidth Optimization: Our program is optimized to utilize minimal bandwidth, consuming less than 3 megabits per minute per worker.
 - ⌛ Tailored Watch Time: Customize the desired watch time for each video, and enjoy the ability to leave likes and comments while logged in.
 - 🌐 Proxy Support: Seamlessly integrate with HTTP, HTTPS, SOCKS4, SOCKS5, and authentication-supported proxies to ensure smooth operation.
 - 🎥 Versatile Video Support: Enjoy comprehensive support for livestreams, regular videos, and shorts.

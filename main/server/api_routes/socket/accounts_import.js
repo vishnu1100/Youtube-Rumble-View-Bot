@@ -50,8 +50,8 @@ module.exports = (data, socket) => {
             break;
     }
 
-    for (let video of videos) {
-        if (video.id == data.video.id) video = video_found
+    for(let [index, video] of videos.entries()){
+        if (video.id == data.video.id) videos[index] = video_found
     }
 
     db.prepare("UPDATE videos SET data = ? WHERE id = 1").run(JSON.stringify(videos))

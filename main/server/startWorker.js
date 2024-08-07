@@ -4,6 +4,7 @@ import { default as youtube_selfbot_api } from "youtube-selfbot-api"
 import { to } from "await-to-js"
 import * as path from "path"
 import { v4 } from "uuid"
+import fs from "fs"
 
 let db_insert_watch_time = db.prepare(`INSERT OR IGNORE INTO watch_time (date, value) VALUES (?, ?)`)
 let db_update_watch_time = db.prepare(`UPDATE watch_time SET value = value + ? WHERE date = ?`)
@@ -316,13 +317,19 @@ function startWorker(job, worker, userDataDir, wtfp) {
 
         let botType = job.isRumble ? rumble_selfbot_api : youtube_selfbot_api
 
+        userDataDir = path.join(__dirname, `../cache/raw_guests/${userDataDir}`);
+
+        if(!fs.existsSync(userDataDir)){
+            fs.mkdirSync(userDataDir)
+        }
+
         let bot = new botType({
             headless: settings.headless,
             ignorePluginsStealth: true,
-            userDataDir: path.join(__dirname, `../cache/raw_guest/${userDataDir}`),
+            //userDataDir: userDataDir,
             proxy: job.proxy,
             autoSkipAds: settings.auto_skip_ads,
-            timeout: settings.proxyTimeout * 1000
+            timeout: settings.timeout * 1000
         })
 
         let browser

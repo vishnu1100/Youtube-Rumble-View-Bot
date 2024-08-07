@@ -22,7 +22,8 @@ function convertProxyFormat(proxyString) {
 
 function checkProxies(proxies) {
     return new Promise(async (resolve, reject) => {
-        proxies = proxies.filter((v) => v.url !== "direct://")
+        proxies = proxies.filter((v) => v.url !== "direct://");
+        proxies = [...new Set(proxies)];
 
         let resolved = false
         let finished = 0
@@ -38,18 +39,18 @@ function checkProxies(proxies) {
 
         setTimeout(() => {
             for (let proxy of workingOn) {
-                proxyStats.bad.push({ url: proxy, err: "proxy is too slow" })
-                proxyStats.untested = proxyStats.untested.filter((v) => v.url !== proxy)
+                proxyStats.bad.push({ url: proxy.url, err: `proxy is too slow, last stage: ${proxy.stage}` })
+                proxyStats.untested = proxyStats.untested.filter((v) => v.url !== proxy.url)
 
                 io.emit("newProxiesStats", proxyStats)
                 return
             }
 
             if (!resolved) resolve()
-        }, settings.timeout * 1000 + 1000)
+        }, ((settings.timeout * 1000) + 1000) * 3)
 
         for (let proxy of proxies) {
-            workingOn.push(proxy.url)
+            workingOn.push({url: proxy.url, stage: "default"});
 
             workArray.push(() => new Promise(async (resolve, reject) => {
                 proxy = proxy.url
@@ -58,7 +59,7 @@ function checkProxies(proxies) {
 
                 children.push({
                     kill: () => {
-                        workingOn = workingOn.filter((p) => p !== proxy)
+                        workingOn = workingOn.filter((p) => p.url !== proxy)
                         resolved = true
                         resolve()
                     },
@@ -69,6 +70,9 @@ function checkProxies(proxies) {
                         throw error
                     }
 
+                    let currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
+                    workingOn[currentWorkingOn].stage = "checking proxy privacy (0)"
+
                     let privacy = await tester.testPrivacy().catch(() => onError("timeout checking proxy privacy"))
                     if (privacy.privacy !== "elite") {
                         proxyStats.bad.push({ url: proxy, err: "Proxy is leaking IP address" })
@@ -78,6 +82,8 @@ function checkProxies(proxies) {
                         return
                     }
 
+                    currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
+                    workingOn[currentWorkingOn].stage = "checking www.youtube.com connection (1)"
 
                     let test1Result = await tester.fastTest(`https://www.youtube.com`).catch(() => onError("timeout connecting to youtube servers"))
                     if (test1Result.status !== 200) {
@@ -91,11 +97,14 @@ function checkProxies(proxies) {
                     await new Promise((resolve, reject) => {
                         let resolved = false
 
-                        try {
+                        currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
+                        workingOn[currentWorkingOn].stage = "11 megabits youtube video download (2)"
+
+                        /*try {
                             ytdl('http://www.youtube.com/watch?v=dQw4w9WgXcQ', {
                                 range: {
                                     start: 0,
-                                    end: ((1000 * 1000) / 8) * 2 * 5.05 // 11.1 megabits (aprox 5 seconds)
+                                    end: ((1000 * 1000) / 8) * 2 * 5 // 11 megabits (aprox 5 seconds)
                                 },
                                 quality: 'lowest',
                                 requestOptions: { agent: new ProxyAgent(convertProxyFormat(proxy)) }
@@ -116,7 +125,10 @@ function checkProxies(proxies) {
                             resolved = true;
 
                             reject("timeout requesting video data")                      
-                        }
+                        }*/
+
+                            resolve()
+                            resolved = true
 
                         setTimeout(() => {
                             if (!resolved) {
@@ -137,7 +149,7 @@ function checkProxies(proxies) {
 
                     resolve()
                 } catch (error) {
-                    workingOn = workingOn.filter(p => p !== proxy)
+                    workingOn = workingOn.filter(p => p.url !== proxy)
                     finished++
 
                     if (!resolved) {

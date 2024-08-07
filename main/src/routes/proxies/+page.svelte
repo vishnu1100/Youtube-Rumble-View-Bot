@@ -83,6 +83,8 @@
 					How much to wait before declaring proxy is nonfunctional?
 				</p>
 				<p class="setting_info">If set to 0 it will wait infinitely untill it resolves or errors</p>
+				<p class="setting_info">Expected proxy test time: {data.timeout * 3}s</p>
+				<p class="setting_info">It will only test proxies if they were bad in the past or if they weren't tested before, please remove manually all bad proxies found.</p>
 			</div>
 
 			<div class="setting_div">

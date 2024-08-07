@@ -3,6 +3,7 @@ const { spawn } = require("child_process")
 const path = require("path")
 require("ansicolor").nice*/
 
+import fs from "fs";
 import { app, BrowserWindow, shell } from 'electron';
 import { spawn } from "child_process";
 import * as path from "path";
@@ -13,6 +14,10 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
     
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+if (!fs.existsSync(path.join(__dirname, "main/cache/raw_guests"))){
+    fs.mkdirSync(path.join(__dirname, "main/cache/raw_guests"), { recursive: true });
+}
 
 function runServer() {
     return new Promise((resolve, reject) => {
@@ -85,7 +90,7 @@ runServer().then((srv_data) => {
         })
 
         win.webContents.on('will-navigate', function (e, url) {
-            if (url.includes("patreon") || url.includes("github") || url.includes("paypal") || url.includes("bloxxy.net") || url.includes("iproyal.com")) {
+            if (url.includes("patreon") || url.includes("github") || url.includes("paypal") || url.includes("bloxxy.net") || url.includes("iproyal.com") || url.includes("discord.")) {
                 e.preventDefault();
                 shell.openExternal(url);
             }
