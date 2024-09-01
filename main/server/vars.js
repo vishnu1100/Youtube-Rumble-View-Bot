@@ -44,4 +44,6 @@ export let defaultServerInfo = {
     proxy_tests_headless: false,
     default_proxy_protocol: "http",
     api_key: "",
+
+    use_AV1: false,
 }

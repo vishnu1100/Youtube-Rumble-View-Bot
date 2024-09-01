@@ -1,15 +1,15 @@
 module.exports = async (data, socket) => {
-    videos = data
+    videos = data;
 
     if(!global.premium){
-        let hasAccount = false
+        let hasAccount = false;
 
         for(let i = 0; i < videos.length; i++){
-            let video = videos[i]
+            let video = videos[i];
 
-            if(video.accounts.length > 0){ hasAccount = true }
+            if(video.accounts.length > 0){ hasAccount = true };
 
-            video.accounts = []
+            video.accounts = [];
         }
 
         if(hasAccount){
@@ -20,10 +20,10 @@ module.exports = async (data, socket) => {
                 button1text: "OK",
     
                 secondButton: false,
-            })
+            });
         }
     }
 
-    db.prepare("UPDATE videos SET data = ? WHERE id = 1").run(JSON.stringify(videos))
-    socket.broadcast.emit("videosChanged", videos)
+    dbRunWithValues("UPDATE videos SET data = ? WHERE id = 1", JSON.stringify(videos));
+    socket.broadcast.emit("videosChanged", videos);
 }

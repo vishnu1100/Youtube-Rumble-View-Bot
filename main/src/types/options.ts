@@ -17,4 +17,6 @@ export type Options = {
     
     api_key: string,
     default_proxy_protocol: string,
+
+    use_AV1: boolean,
 };

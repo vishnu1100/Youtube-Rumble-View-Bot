@@ -30,7 +30,7 @@ function calculateAction(work_video) {
     }
 
     if (percent3 < subscribePercent) {
-        return "subscribe"
+        return [percent1 < likePercent ? "like" : "none", "subscribe"]
     }
 }
 

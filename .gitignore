@@ -13,3 +13,5 @@ cache
 /dev
 *.log
 out/
+app
+sessions

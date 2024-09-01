@@ -4,35 +4,57 @@ import { fileURLToPath } from 'url';
 import { to } from 'await-to-js';
 import { v4 } from 'uuid';
 
-import "./server/init_start.js";
-import "./server/init_server.js";
+process.setMaxListeners(0)
 
-let proxyFormats = ["socks5", "socks4", "http", "https"]
-global.routes = {}
+import './server/init_start.js';
+import './server/init_server.js';
 
-let dirname = path.dirname(fileURLToPath(import.meta.url));
+let __filename = fileURLToPath(import.meta.url);
+let __dirname = path.dirname(__filename);
 
-for (let folder of readdirSync(path.join(dirname, "/server/api_routes"))) {
-    let stat = statSync(path.join(dirname, "/server/api_routes", folder))
+global.routes = {get: {}, post: {}, socket: {}}
 
-    if (stat && stat.isDirectory()) {
-        if (!routes[folder]) routes[folder] = []
+async function startFullServer(){
+    await initDatabase();
 
-        for (let route of readdirSync(path.join(dirname, "/server/api_routes", folder))) {
-            let routeName = route.split(".")[0]
-            routes[folder][routeName] = require(path.join(dirname, "/server/api_routes", folder, route))
+    await getGlobals();
+    makeSessionMiddleware();
+
+    initServer()
+
+    await getStats();
+
+    for (let folder of readdirSync(path.join(__dirname, "/server/api_routes"))) {
+        let stat = statSync(path.join(__dirname, "/server/api_routes", folder))
+    
+        if (stat && stat.isDirectory()) {
+            if (!routes[folder]) routes[folder] = []
+    
+            for (let route of readdirSync(path.join(__dirname, "/server/api_routes", folder))) {
+                let routeName = route.split(".")[0]
+                routes[folder][routeName] = require(path.join(__dirname, "/server/api_routes", folder, route))
+            }
         }
     }
+
+    await launchServer();
 }
-//app.set('trust proxy', 1)
+
+global.startFullServer = startFullServer;
+
+let proxyFormats = ["socks5", "socks4", "http", "https"]
 
 route.get("/:method", (req, res) => {
     let api = req.path.split("/").pop()
+    if(!routes.get[api]) return;
+
     routes.get[api](req, res)
 })
 
 route.post("/:method", (req, res) => {
     let api = req.path.split("/").pop()
+    if(!routes.post[api]) return;
+
     routes.post[api](req, res)
 })
 
@@ -108,7 +130,7 @@ async function startWorking() {
 
             wasChecking = true
 
-            let old_good_proxies = JSON.parse(db.prepare(`SELECT data FROM good_proxies WHERE id = 1`).pluck().get())
+            let old_good_proxies = JSON.parse((await dbGet(`SELECT data FROM good_proxies WHERE id = 1`)).data);
 
             for (let proxy of proxies) {
                 if (proxy.length >= 4) {

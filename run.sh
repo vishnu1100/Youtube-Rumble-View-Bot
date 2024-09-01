@@ -1,3 +1,3 @@
 #!/bin/bash
 
-electron --js-flags=--max-old-space-size=8192 ./index.js
+electron --experimental-modules --js-flags="--max-old-space-size=8192" --no-warnings ./src/index.js

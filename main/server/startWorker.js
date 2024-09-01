@@ -6,15 +6,6 @@ import * as path from "path"
 import { v4 } from "uuid"
 import fs from "fs"
 
-let db_insert_watch_time = db.prepare(`INSERT OR IGNORE INTO watch_time (date, value) VALUES (?, ?)`)
-let db_update_watch_time = db.prepare(`UPDATE watch_time SET value = value + ? WHERE date = ?`)
-
-let db_insert_bandwidth = db.prepare(`INSERT OR IGNORE INTO bandwidth (date, value) VALUES (?, ?)`)
-let db_update_bandwidth = db.prepare(`UPDATE bandwidth SET value = value + ? WHERE date = ?`)
-
-let db_insert_views = db.prepare(`INSERT OR IGNORE INTO views (date, value) VALUES (?, ?)`)
-let db_update_views = db.prepare(`UPDATE views SET value = value + 1 WHERE date = ?`)
-
 function clamp(num, min, max) {
     return num <= min ? min : num >= max ? max : num
 }
@@ -65,11 +56,11 @@ global.watchInterval = setInterval(() => {
         var alreadyFound = stats.watch_time.filter((v) => v.date == currentTime)
         if (!alreadyFound[0]) {
             stats.watch_time.push({ date: currentTime, value: 0 })
-            db_insert_watch_time.run(currentTime, 0)
+            await dbRunWithValues(`INSERT OR IGNORE INTO watch_time (date, value) VALUES (?, ?)`, [currentTime, 0])
         }
 
         stats.watch_time[stats.watch_time.length - 1].value += newAmount
-        db_update_watch_time.run(newAmount, currentTime)
+        await dbRunWithValues(`UPDATE watch_time SET value = value + ? WHERE date = ?`, [newAmount, currentTime])
 
         if (!workingHolder.increasedViews && increase > workingHolder.maxWatchtime) {
             workingHolder.increasedViews = true
@@ -78,11 +69,11 @@ global.watchInterval = setInterval(() => {
             if (!alreadyFound2[0]) {
                 stats.views.push({ date: currentTime, value: 0 })
 
-                db_insert_views.run(currentTime, 0)
+                await dbRunWithValues(`INSERT OR IGNORE INTO views (date, value) VALUES (?, ?)`, [currentTime, 0])
             }
 
             stats.views[stats.views.length - 1].value += 1
-            db_update_views.run(currentTime)
+            await dbRunWithValues(`UPDATE views SET value = value + 1 WHERE date = ?`, currentTime)
 
             io.emit("increase_views_amount")
         }
@@ -214,6 +205,8 @@ async function startYoutubeWorker(job, worker, browser, wtfp, processErr, resolv
         if (seek_err) return processErr(`Error seeking to the start of the video: ${seek_err}`)
     }
 
+    await watcherContext.setResolution("tiny");
+
     let workerHolder = await makeOwnerHolder(job, worker, wtfp, browser, watcherContext, resolve, reject);
     workingList.push(workerHolder)
 
@@ -329,7 +322,10 @@ function startWorker(job, worker, userDataDir, wtfp) {
             //userDataDir: userDataDir,
             proxy: job.proxy,
             autoSkipAds: settings.auto_skip_ads,
-            timeout: settings.timeout * 1000
+            timeout: settings.timeout * 1000,
+
+            muteAudio: true,
+            useAV1: settings.use_AV1
         })
 
         let browser
@@ -378,11 +374,12 @@ function startWorker(job, worker, userDataDir, wtfp) {
             var alreadyFound = stats.bandwidth.filter((v) => v.date == currentTime)
             if (!alreadyFound[0]) {
                 stats.bandwidth.push({ date: currentTime, value: 0 })
-                db_insert_bandwidth.run(currentTime, 0)
+
+                dbRunWithValues(`INSERT OR IGNORE INTO bandwidth (date, value) VALUES (?, ?)`, [currentTime, 0])
             }
 
             stats.bandwidth[stats.bandwidth.length - 1].value += len
-            db_update_bandwidth.run(len, currentTime)
+            dbRunWithValues(`UPDATE bandwidth SET value = value + ? WHERE date = ?`, [len, currentTime])
             worker.bandwidth += len
 
             io.emit("update_workers", workers)

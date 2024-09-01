@@ -36,15 +36,14 @@ We prioritize your satisfaction, and our user-friendly interface reflects our co
 
 3. Seamless YouTube and Rumble Integration 🌐
 
-At YouTube&Rumble Watch Bot, we strive to seamlessly integrate with the YouTube  and Rumble platforms, optimizing your experience and boosting your performance. Our program is designed to seamlessly align with YouTube's features and functionalities, ensuring a smooth and harmonious workflow. From bypassing unnecessary pages to intelligently navigating YouTube and Rumble's ecosystems, our bot seamlessly integrates into your YouTube and Rumble strategy. With the YouTube&Rumble Watch Bot as your ally, you can effortlessly leverage the platform's capabilities, enhance your metrics, and elevate your online presence. Embrace a hassle-free and streamlined YouTube&Rumble journey with the YouTube&Rumble Watch Bot.
+At YouTube&Rumble Watch Bot, we strive to seamlessly integrate with the YouTube and Rumble platforms, optimizing your experience and boosting your performance. Our program is designed to seamlessly align with YouTube's and Rumble's features and functionalities, ensuring a smooth and harmonious workflow. From bypassing unnecessary pages to intelligently navigating YouTube's and Rumble's ecosystems, our bot seamlessly integrates into your YouTube and Rumble strategy. With the YouTube&Rumble Watch Bot as your ally, you can effortlessly leverage the platform's capabilities, enhance your metrics, and elevate your online presence. Embrace a hassle-free and streamlined YouTube&Rumble journey with the YouTube&Rumble Watch Bot.
 
 ## Requirements 📋
 
 To harness the full power of the YouTube&Rumble Watch Bot, ensure that your system meets the following requirements:
 
-- NodeJS S 18.16.10 and above
 - A connection speed of at least 2 megabits per minute per worker
-- Adequate proxies to enhance your view count (if desired)
+- Adequate proxies
 - A decent computer with reliable hardware to handle the workload
 
 ## Key Features 🌟

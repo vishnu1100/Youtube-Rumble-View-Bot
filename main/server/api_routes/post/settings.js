@@ -1,8 +1,5 @@
 const axios = require("axios")
 
-const selectPremiumCache = db.prepare('SELECT * FROM premium_cache LIMIT 1');
-const updatePremiumCache = db.prepare(`INSERT OR REPLACE INTO premium_cache (value, date) VALUES (?, ?)`);
-
 async function updatePremiumRank(){
     let isPremium = false
     let api_key = settings.api_key
@@ -17,13 +14,14 @@ async function updatePremiumRank(){
     
             if(data.id >= 0 && data.subscription >= 10){
                 isPremium = true
-                updatePremiumCache.run("true", Date.now());
+
+                await dbRunWithValues(`INSERT OR REPLACE INTO premium_cache (value, date) VALUES (?, ?)`, ["true", Date.now()]);
             } else {
-                updatePremiumCache.run("false", Date.now());
+                await dbRunWithValues(`INSERT OR REPLACE INTO premium_cache (value, date) VALUES (?, ?)`, ["false", Date.now()]);
             }
         } catch (err){
             console.error(err)
-            const cacheData = selectPremiumCache.get();
+            const cacheData = await dbGet('SELECT * FROM premium_cache LIMIT 1');
 
             if (cacheData) {
                 if((cacheData.date + (1000 * 60 * 60 * 24 * 3)) >= Date.now() && cacheData.value == "true"){
@@ -81,8 +79,22 @@ module.exports = async (req, res) => {
     
             settings.auto_skip_ads = true;
         }
+
+        if(settings.use_AV1 == true){
+            await MessageUser({
+                title: premiumOnlyTitle,
+                text: `To be able to use AV1, \n${premiumText}`,
+    
+                button1text: "OK",
+    
+                secondButton: false,
+            })
+    
+            settings.use_AV1 = false;
+        }
     }
-    db.prepare('UPDATE options SET data = ? WHERE id = 1').run(JSON.stringify(settings))
+    
+    dbRunWithValues('UPDATE options SET data = ? WHERE id = 1', JSON.stringify(settings))
     res.sendStatus(201)
 
     io.emit("settings", settings)

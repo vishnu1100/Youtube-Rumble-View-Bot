@@ -1,8 +1,8 @@
 #!/bin/bash
 
+npm install electron@32.0.1 --global
 npm install
-# CALL npm run electron-builder install-app-deps
-npm install electron --global
+CALL ./node_modules/.bin/electron-rebuild
 npx playwright install-deps firefox
 npx playwright install firefox
 npm run rebuild-sqlite

@@ -2,25 +2,25 @@ import { Server } from "socket.io"
 import express from "express"
 import http from "http"
 import session from "express-session"
-import Database from "better-sqlite3"
-import SQLite3Session from "better-sqlite3-session-store"
+import Sqlite3 from "sqlite3"
+import SQLiteStore  from "connect-sqlite3"
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 } from 'uuid';
 import { NodeVM } from 'vm2';
 import { existsSync, mkdir, mkdirSync, readFileSync, readdirSync, writeFileSync } from "fs"
+import { promisify } from "util"
 
 import { createRequire } from "module";
 import { defaultServerInfo } from "./vars.js"
 
-process.setMaxListeners(0)
+global.__filename = fileURLToPath(import.meta.url);
+global.__dirname = path.dirname(__filename);
+global.require = createRequire(import.meta.url);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const require = createRequire(import.meta.url);
 
-const SqliteStore = SQLite3Session(session)
-const db = new Database(path.join(__dirname, `../database.db3`))
+const db = new Sqlite3.Database(path.join(__dirname, `../database.db3`))
+const sqlitestore = SQLiteStore(session)
 
 const app = express();
 let route = express.Router()
@@ -124,14 +124,14 @@ async function RemindUser(MessageData) {
 
     let decisionResponse = await decisionTaken;
 
-    switch(decisionResponse){
+    switch (decisionResponse) {
         case 1:
             break;
         case 2:
             settings.send_reminders = false;
 
-            db.prepare('UPDATE options SET data = ? WHERE id = 1').run(JSON.stringify(settings))        
-            io.emit("settings", settings)
+            await dbRunWithValues('UPDATE options SET data = ? WHERE id = 1', JSON.stringify(settings));
+            io.emit("settings", settings);
             break;
         case 3:
             process.stdout.write(`navigate|${MessageData.url}\n`);
@@ -140,22 +140,22 @@ async function RemindUser(MessageData) {
 }
 
 setInterval(() => {
-    if(settings.send_reminders){
+    if (settings.send_reminders) {
         let random = Math.floor(Math.random() * 2)
 
-        if(random == 0 || global.premium){
+        if (random == 0 || global.premium) {
             RemindUser({
                 title: "Rate your experience",
                 text: `If you like the Youtube-View-Bot project, consider giving it a star, read and fork on github to help me \nmake updates and improvements faster and better.`,
-            
+
                 image: "/images/github-mark-white.png",
                 url: "https://github.com/JijaProGamer/Youtube-View-Bot"
-            }) 
-        } else if(random == 1) {
+            })
+        } else if (random == 1) {
             RemindUser({
                 title: "Get premium access",
                 text: `For unrestricted access to all the features of the Youtube-View-Bot, consider subscribing to our patreon, \nby following the instructions on the settings page.`,
-            
+
                 image: "/images/PATREON_SYMBOL_1_WHITE_RGB.png",
                 url: "/settings"
             })
@@ -163,102 +163,218 @@ setInterval(() => {
     }
 }, 1000 * 60 * 30)
 
-db.pragma('journal_mode = WAL');
 
-db.prepare("CREATE TABLE IF NOT EXISTS bandwidth (date INTEGER, value INTEGER, UNIQUE(date))").run()
-db.prepare("CREATE TABLE IF NOT EXISTS views (date INTEGER, value INTEGER, UNIQUE(date))").run()
-db.prepare("CREATE TABLE IF NOT EXISTS watch_time (date INTEGER, value INTEGER, UNIQUE(date))").run()
 
-db.prepare("CREATE TABLE IF NOT EXISTS video_cache (data TEXT, id TEXT, UNIQUE(id))").run()
-db.prepare("CREATE TABLE IF NOT EXISTS options (data TEXT, id INTEGER)").run()
-db.prepare("CREATE TABLE IF NOT EXISTS cache (url TEXT, data TEXT, UNIQUE(url))").run()
-db.prepare("CREATE TABLE IF NOT EXISTS secret (data TEXT)").run()
 
-db.prepare("CREATE TABLE IF NOT EXISTS videos (data TEXT, id INTEGER, UNIQUE(id))").run()
-db.prepare("CREATE TABLE IF NOT EXISTS good_proxies (data TEXT, id INTEGER, UNIQUE(id))").run()
-db.prepare("CREATE TABLE IF NOT EXISTS proxies (data TEXT, id INTEGER, UNIQUE(id))").run()
 
-db.prepare("CREATE TABLE IF NOT EXISTS srv_password (password TEXT, id INTEGER)").run()
-db.prepare("CREATE TABLE IF NOT EXISTS keys (key TEXT, status INTEGER, UNIQUE(key))").run()
 
-db.prepare(`CREATE TABLE IF NOT EXISTS premium_cache (value TEXT, date INTEGER)`).run();
 
-db.prepare('INSERT OR IGNORE INTO proxies (data, id) VALUES (?, 1)').run(`["direct://"]`)
-db.prepare('INSERT OR IGNORE INTO good_proxies (data, id) VALUES (?, 1)').run(`[]`)
-db.prepare('INSERT OR IGNORE INTO videos (data, id) VALUES (?, 1)').run(`[]`)
+
+
+
+
+
+function dbRun(command){
+    return new Promise((resolve, reject) => {
+        db.run(command, (err, row) => {
+            if(err) return reject(err);
+            resolve(row)
+        })
+    })
+}
+
+function dbRunWithValues(command, values){
+    return new Promise((resolve, reject) => {
+        db.prepare(command).run(values).finalize((err) => {
+            if(err) return reject(err);
+            resolve()
+        });
+    })
+}
+
+function dbGet(command){
+    return new Promise((resolve, reject) => {
+        db.get(command, (err, row) => {
+            if(err) return reject(err);
+            resolve(row)
+        })
+    })
+}
+
+function dbGetAll(command){
+    return new Promise((resolve, reject) => {
+        db.all(command, (err, row) => {
+            if(err) return reject(err);
+            resolve(row)
+        })
+    })
+}
+
+function dbGetValues(command, values){
+    return new Promise((resolve, reject) => {
+        db.get(command, values, (err, row) => {
+            if(err) return reject(err);
+            resolve(row)
+        })
+    })
+}
+
+global.dbGetAll = dbGetAll;
+global.dbGetValues = dbGetValues;
+global.dbRun = dbRun;
+global.dbRunWithValues = dbRunWithValues;
+global.dbGet = dbGet;
+
+
+
+async function initDatabase(){
+    await dbRun('PRAGMA journal_mode = WAL;');
+
+    await Promise.all([
+        dbRun("CREATE TABLE IF NOT EXISTS bandwidth (date INTEGER, value INTEGER, UNIQUE(date))"),
+        dbRun("CREATE TABLE IF NOT EXISTS views (date INTEGER, value INTEGER, UNIQUE(date))"),
+        dbRun("CREATE TABLE IF NOT EXISTS watch_time (date INTEGER, value INTEGER, UNIQUE(date))"),
+        
+        dbRun("CREATE TABLE IF NOT EXISTS video_cache (data TEXT, id TEXT, UNIQUE(id))"),
+        dbRun("CREATE TABLE IF NOT EXISTS options (data TEXT, id INTEGER)"),
+        dbRun("CREATE TABLE IF NOT EXISTS cache (url TEXT, data TEXT, UNIQUE(url))"),
+        dbRun("CREATE TABLE IF NOT EXISTS secret (data TEXT)"),
+        
+        dbRun("CREATE TABLE IF NOT EXISTS videos (data TEXT, id INTEGER, UNIQUE(id))"),
+        dbRun("CREATE TABLE IF NOT EXISTS good_proxies (data TEXT, id INTEGER, UNIQUE(id))"),
+        dbRun("CREATE TABLE IF NOT EXISTS proxies (data TEXT, id INTEGER, UNIQUE(id))"),
+        
+        dbRun("CREATE TABLE IF NOT EXISTS srv_password (password TEXT, id INTEGER)"),
+        dbRun("CREATE TABLE IF NOT EXISTS keys (key TEXT, status INTEGER, UNIQUE(key))"),
+        
+        dbRun(`CREATE TABLE IF NOT EXISTS premium_cache (value TEXT, date INTEGER)`),
+    ])
+
+    await Promise.all([
+        dbRunWithValues('INSERT OR IGNORE INTO proxies (data, id) VALUES (?, 1)', `["direct://"]`),
+        dbRunWithValues('INSERT OR IGNORE INTO good_proxies (data, id) VALUES (?, 1)', `[]`),
+        dbRunWithValues('INSERT OR IGNORE INTO videos (data, id) VALUES (?, 1)', `[]`)
+    ])
+}
+
+global.initDatabase = initDatabase;
+
+
 
 let workingStatus = 0
 let proxyStats = { good: [], bad: [], untested: [] }
 let stats = {}
 let extensions = []
 
-stats = {
-    views: db.prepare(`SELECT * FROM views`).all(),
-    watch_time: db.prepare(`SELECT * FROM watch_time`).all(),
-    bandwidth: db.prepare(`SELECT * FROM bandwidth`).all(),
+async function getStats(){
+    stats.views = await dbGetAll(`SELECT * FROM views`) || [];
+    stats.watch_time = await dbGetAll(`SELECT * FROM watch_time`) || [];
+    stats.bandwidth = await dbGetAll(`SELECT * FROM bandwidth`) || [];
 }
 
-let good_proxies = JSON.parse(db.prepare(`SELECT * FROM good_proxies`).pluck().get())
-let proxies = JSON.parse(db.prepare(`SELECT * FROM proxies`).pluck().get())
-let videos = JSON.parse(db.prepare(`SELECT * FROM videos`).pluck().get())
+global.getStats = getStats;
 
-let currentSecret = db.prepare(`SELECT * FROM secret`).pluck().get()
-if (!currentSecret) {
-    currentSecret = v4().split("-").join("")
-    db.prepare('INSERT INTO secret (data) VALUES (?)').run(currentSecret)
+async function getGlobals(){
+    let globalsPromises = [
+        dbGet("SELECT * FROM good_proxies"),
+        dbGet("SELECT * FROM proxies"),
+        dbGet("SELECT * FROM videos"),
+        dbGet("SELECT * FROM secret"),
+        dbGet("SELECT * FROM options")
+    ];
+
+    let globals = (await Promise.all(globalsPromises)).map((v) => v ? v.data : null);
+    global.good_proxies = JSON.parse(globals[0]);
+    global.proxies = JSON.parse(globals[1]);
+    global.videos = JSON.parse(globals[2]);
+    global.currentSecret = globals[3];
+
+    if (!global.currentSecret) {
+        global.currentSecret = v4().split("-").join("")
+        db.prepare('INSERT INTO secret (data) VALUES (?)').run(global.currentSecret)
+    }
+
+    try {
+        if(globals[4] == null) throw Error("error");
+        global.settings = JSON.parse(globals[4]);
+    } catch(err) {
+        global.settings = defaultServerInfo;
+    
+        await dbRunWithValues('INSERT INTO options (data, id) VALUES (?, 1)', JSON.stringify(global.settings));
+    };
 }
 
-let settings = db.prepare(`SELECT * FROM options`).pluck().get()
+global.getGlobals = getGlobals;
 
-if (!settings) {
-    settings = defaultServerInfo
-
-    db.prepare('INSERT INTO options (data, id) VALUES (?, 1)').run(JSON.stringify(settings))
-    server.listen(settings.server_port, () => process.stdout.write(`listening|${settings.server_port}`))
-} else {
-    settings = JSON.parse(settings)
-    server.listen(settings.server_port, () => process.stdout.write(`listening|${settings.server_port}`))
-}
-
-global.settings = settings
-
-const sessionMiddleware = session({
-    secret: currentSecret,
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false,
-        sameSite: true,
-        maxAge: 2592000000 // one month in ms
-    },
-    store: new SqliteStore({
-        client: db,
-        expired: {
-            clear: false,
-            intervalMs: 900000,
-        }
+function launchServer() {
+    return new Promise(async (resolve, reject) => {
+        server.listen(settings.server_port, () => resolve())
     })
-})
+}
+
+global.launchServer = launchServer;
+
+global.makeSessionMiddleware = function(){
+    global.sessionMiddleware = session({
+        secret: currentSecret,
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false,
+            sameSite: true,
+            maxAge: 2592000000 // one month in ms
+        },
+        store: new sqlitestore/*({
+            db: path.join(__dirname, `../database.db3`),
+            concurrentDB: 'true'
+        })*/
+    })
+}
 
 let makeGlobal = {
     db, app, route, io,
-    settings, workingStatus, good_proxies, proxyStats,
+    workingStatus, proxyStats,
     workers: [], jobs: [], workers_finished: [], stats,
     server_password_global: undefined,
     server_version: readFileSync(path.join(__dirname, "../../VERSION"), "utf-8"),
-    videos, proxies,
     __dirname, require,
     extensions,
     lastHealth: {},
     random,
     computeTime, getCurrentTime,
-    sessionMiddleware,
     MakeLog, MessageUser
 }
 
 for (let [key, value] of Object.entries(makeGlobal)) {
     global[key] = value
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 for (let extensionPath of readdirSync(path.join(__dirname, "../../extensions"))) {
     extensionPath = path.join(__dirname, "../../extensions", extensionPath)

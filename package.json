@@ -1,44 +1,18 @@
 {
   "config": {
-    "forge": {
-      "packagerConfig": {
-        "authors": "Bloxxy",
-        "description": "Youtube-View-Bot",
-        "targets": [
-          "win32",
-          "linux",
-          "darwin"
-        ]
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "youtube_view_bot"
-          }
-        },
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {}
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "config": {}
-        }
-      ]
-    }
+    "forge": "./forge.config.cjs"
   },
   "type": "module",
   "name": "youtube-view-bot",
   "version": "3.1.0",
   "description": "Youtube-View-Bot",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start-forge": "electron-forge start",
+    "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
-    "rebuild-sqlite": "electron-rebuild -f -w better-sqlite3"
+    "make": "electron-forge make"
   },
+  "buildDependenciesFromSource": "true",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/JijaProGamer/Youtube-View-Bot.git"
@@ -62,32 +36,37 @@
     "@electron-forge/maker-zip": "^6.4.2",
     "@electron-forge/plugin-auto-unpack-natives": "^6.4.2",
     "@electron-forge/publisher-github": "^7.4.0",
+    "@electron/rebuild": "^3.6.0",
     "@sveltejs/kit": "^1.0.0",
     "electron": "27.0.2",
+    "electron-builder": "^24.13.3",
+    "electron-prebuilt-compile": "8.2.0",
+    "electron-rebuild": "^3.2.9",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-svelte3": "^4.0.0",
+    "eslint-plugin-svelte": "2.43.0",
     "prettier": "^2.8.0",
     "prettier-plugin-svelte": "^2.8.1",
-    "svelte": "^3.54.0",
+    "svelte": "^4.2.19",
     "svelte-check": "^3.0.1",
     "typescript": "^4.9.3",
     "vite": "^4.0.0"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.14.4",
     "@sveltejs/adapter-node": "^1.1.4",
     "@sveltejs/adapter-static": "^1.0.5",
     "ansicolor": "^1.1.100",
     "await-to-js": "^3.0.0",
     "axios": "^1.2.3",
-    "better-sqlite3": "^9.2.2",
     "better-sqlite3-session-store": "^0.1.0",
     "chalk": "^4.0.0",
+    "connect-sqlite3": "^0.9.15",
     "electron-squirrel-startup": "^1.0.0",
     "express": "^4.18.2",
     "express-bearer-token": "^2.4.0",
     "express-session": "^1.17.3",
-    "fast-proxy-tester": "^1.0.5",
+    "fast-proxy-tester": "^1.0.6",
     "find-chrome-bin": "^1.0.2",
     "helmet": "^6.0.1",
     "node-abi": "^3.51.0",
@@ -95,11 +74,12 @@
     "playwright-anti-fingerprinter": "^1.1.3",
     "proxy-agent-v2": "^1.0.3",
     "rumble-core": "^1.0.3",
-    "rumble-selfbot-api": "^1.0.5",
+    "rumble-selfbot-api": "^1.0.6",
     "sass": "^1.57.1",
     "socket.io": "^4.5.4",
     "socket.io-client": "^4.5.4",
-    "svelte-chartjs": "^3.1.2",
+    "sqlite3": "^5.1.7",
+    "svelte-chartjs": "^3.1.5",
     "svelte-multiselect": "^8.3.0",
     "svelte-preprocess": "^5.0.1",
     "systeminformation": "^5.17.4",
@@ -107,7 +87,6 @@
     "uuid": "^9.0.0",
     "vm2": "^3.9.14",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz",
-    "youtube-selfbot-api": "^4.2.9",
-    "ytdl-core": "^4.11.5"
+    "youtube-selfbot-api": "^4.3.3"
   }
 }

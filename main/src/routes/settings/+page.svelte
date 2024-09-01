@@ -140,6 +140,19 @@
 				<p class="setting_info">Should the workers be invisible (Lower CPU/RAM usage)?</p>
 			</div>
 
+			<div class="setting_div">
+				<div class="same_line">
+					<h2 class="setting_name">Allow AV1:</h2>
+
+					<input
+						class="setting_button setting_checkbox"
+						type="checkbox"
+						bind:checked={data.use_AV1}
+					/>
+				</div>
+
+				<p class="setting_info">Should the workers use AV1 if the video is encoded with 144p AV1?</p>
+			</div>
 
 			<div class="setting_div">
 				<div class="same_line">

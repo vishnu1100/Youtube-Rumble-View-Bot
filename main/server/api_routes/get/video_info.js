@@ -1,13 +1,8 @@
-const ytdl = require('ytdl-core');
+const ytdl = require('@distube/ytdl-core');
 const rumble = require("rumble-core")
 
 let cache = {}
 let blacklist = []
-
-let db_insert_video = db.prepare(`INSERT INTO video_cache (data, id) VALUES (?, ?)`)
-let db_get_video = db.prepare(`SELECT data FROM video_cache WHERE id = ?`)
-
-//let fs = require("fs")
 
 function getYoutubeID(url) {
     let regex = /(youtu.*be.*)\/(watch\?v=|embed\/|v|shorts|)(.*?((?=[&#?])|$))/gm
@@ -29,7 +24,7 @@ function getYoutubeID(url) {
 }
 
 function handleYoutube(id, req, res){
-    ytdl.getBasicInfo(id).then((videoInfo) => {
+    ytdl.getInfo(id).then((videoInfo) => {
         let vFormats = videoInfo.formats.filter((v) => v.width && v.height)
         let vFormat = vFormats.sort((a, b) => a.width - b.width).shift()
         let max_vFormat = vFormats.sort((a, b) => a.width - b.width).pop()
@@ -54,12 +49,11 @@ function handleYoutube(id, req, res){
             }
         }
 
-        db_insert_video.run(JSON.stringify(result), id)
+        dbRunWithValues(`INSERT INTO video_cache (data, id) VALUES (?, ?)`, [JSON.stringify(result), id]);
     
         res.json(result)
         cache[id] = result
     }).catch((err) => {
-        //console.log(err)
         //db_insert_video.run("false", id)
         //blacklist.push(id)
 
@@ -98,7 +92,7 @@ function handleRumble(id, req, res){
             }
         }
 
-        db_insert_video.run(JSON.stringify(result), id)
+        dbRunWithValues(`INSERT INTO video_cache (data, id) VALUES (?, ?)`, [JSON.stringify(result), id]);
     
         res.json(result)
         cache[id] = result
@@ -111,7 +105,7 @@ function handleRumble(id, req, res){
     })
 }
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
     let YoutubeID = getYoutubeID(req.query.id)
     let RumbleID = getRumbleID(req.query.id)
 
@@ -123,7 +117,7 @@ module.exports = (req, res) => {
     if (cache[id]) return res.send(cache[id])
     //if (blacklist.includes(id)) return res.sendStatus(404)
 
-    let videoFromDB = db_get_video.get(id)
+    let videoFromDB = await dbGetValues("SELECT data FROM video_cache WHERE id = ?", [id]);
     if(videoFromDB){
         res.json(JSON.parse(videoFromDB.data))
     /*} else if (videoFromDB.data == "false"){

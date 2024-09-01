@@ -1,6 +1,6 @@
 module.exports = (data, socket) => {
-    proxies = data
+    proxies = data;
 
-    db.prepare("UPDATE proxies SET data = ? WHERE id = 1").run(JSON.stringify(proxies))
-    socket.broadcast.emit("proxiesChanged", proxies)
+    dbRunWithValues("UPDATE proxies SET data = ? WHERE id = 1", JSON.stringify(proxies));
+    socket.broadcast.emit("proxiesChanged", proxies);
 }

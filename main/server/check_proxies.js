@@ -1,5 +1,5 @@
 import createProxyTester from 'fast-proxy-tester';
-import ytdl from "ytdl-core"
+import ytdl from "@distube/ytdl-core"
 
 import ProxyAgent from 'proxy-agent-v2';
 
@@ -71,7 +71,19 @@ function checkProxies(proxies) {
                     }
 
                     let currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
-                    workingOn[currentWorkingOn].stage = "checking proxy privacy (0)"
+                    workingOn[currentWorkingOn].stage = "checking proxy format (1)"
+
+                    let urlStatus = tester.testProxyURL(proxy);
+                    if (!urlStatus.isValid) {
+                        proxyStats.bad.push({ url: proxy, err: "Proxy is malformed" })
+                        proxyStats.untested = proxyStats.untested.filter((v) => v.url !== proxy)
+
+                        io.emit("newProxiesStats", proxyStats)
+                        return
+                    }
+
+                    currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
+                    workingOn[currentWorkingOn].stage = "checking proxy privacy (2)"
 
                     let privacy = await tester.testPrivacy().catch(() => onError("timeout checking proxy privacy"))
                     if (privacy.privacy !== "elite") {
@@ -83,7 +95,7 @@ function checkProxies(proxies) {
                     }
 
                     currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
-                    workingOn[currentWorkingOn].stage = "checking www.youtube.com connection (1)"
+                    workingOn[currentWorkingOn].stage = "checking www.youtube.com connection (3)"
 
                     let test1Result = await tester.fastTest(`https://www.youtube.com`).catch(() => onError("timeout connecting to youtube servers"))
                     if (test1Result.status !== 200) {
@@ -98,7 +110,7 @@ function checkProxies(proxies) {
                         let resolved = false
 
                         currentWorkingOn = workingOn.findIndex((v) => v.url = proxy);
-                        workingOn[currentWorkingOn].stage = "11 megabits youtube video download (2)"
+                        workingOn[currentWorkingOn].stage = "11 megabits youtube video download (4)"
 
                         /*try {
                             ytdl('http://www.youtube.com/watch?v=dQw4w9WgXcQ', {
