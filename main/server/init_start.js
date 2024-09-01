@@ -308,7 +308,10 @@ global.getGlobals = getGlobals;
 
 function launchServer() {
     return new Promise(async (resolve, reject) => {
-        server.listen(settings.server_port, () => resolve())
+        server.listen(settings.server_port, () => {
+            console.log(`Server started on http://127.0.0.1:${settings.server_port}`)
+            resolve()
+        })
     })
 }
 
