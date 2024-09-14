@@ -38,7 +38,12 @@
 	}
 
 	function changeVideoKeywords(video: any, newKeywords: string, element: any) {
-		video.keywords = newKeywords.trim().split('\n');
+		video.keywords = newKeywords.trim().split('\n').map(v => v.trim());
+		videos = videos;
+	}
+
+	function changeVideoReferrals(video: any, newReferrals: string, element: any) {
+		video.referrals = newReferrals.trim().split('\n').map(v => v.trim());
 		videos = videos;
 	}
 
@@ -113,6 +118,7 @@
 				guest_views: 10,
 				available_watch_types: ['search', 'direct'],
 				keywords: [],
+				referrals: ["https://www.discord.com", "https://www.youtube.com", "https://www.facebook.com", "https://www.x.com"],
 				filters: {
 					upload_date: 'any',
 					duration: 'any',
@@ -201,6 +207,7 @@
 								</p>
 							{/if}
 						</div>
+
 
 						{#if videoInfo[video.id].videoType == 'livestream'}
 							<div class="setting_div">
@@ -340,6 +347,84 @@
 								</div>
 							</div>
 						{/if}
+
+						{#if video.available_watch_types.includes('direct')}
+							<div class="setting_div">
+								<div class="different_line">
+									<h2 class="setting_name" style="text-align: center;">Referrals (Optional)</h2>
+
+									<textarea
+										class="setting_stringarea"
+										placeholder="https://www.discord.com
+https://www.youtube.com
+https://www.facebook.com
+https://www.x.com"
+										value={video.referrals.join('\n').trim()}
+										on:input={(event) =>
+											changeVideoReferrals(video, event.target?.value, event.target)}
+									/>
+								</div>
+
+								{#if index == 0}
+									<p class="setting_info">
+										What referals should it use when going directly to the video?
+									</p>
+									<p class="setting_info">
+										Using improper or wrong referals will damage your video in the algorithm.
+									</p>
+									<p class="setting_info">
+										NOTE: PREMIUM ONLY, WON'T APPLY IF YOU DON'T HAVE PREMIUM.
+									</p>
+									<p class="setting_info">Make sure each title is separated by a new line.</p>
+								{/if}
+							</div>
+						{/if}
+
+						<h1 class="setting_discloser">Search filters (Optional)</h1>
+
+						<div class="setting_div">
+							<div class="same_line">
+								<h2 class="setting_name">Upload date:</h2>
+
+								<select class="setting_text" bind:value={video.filters.upload_date}>
+									{#each generateUploadDate(video) as option}
+										<option value={option}>{option}</option>
+									{/each}
+								</select>
+							</div>
+						</div>
+
+						<div class="setting_div">
+							<div class="same_line">
+								<h2 class="setting_name">Sort by:</h2>
+
+								<select class="setting_text" bind:value={video.filters.sort_by}>
+									{#each availableSortBy as option}
+										<option value={option}>{option}</option>
+									{/each}
+								</select>
+							</div>
+						</div>
+
+						<div class="setting_div">
+							<div class="same_line">
+								<h2 class="setting_name">Duration:</h2>
+
+								<select class="setting_text" bind:value={video.filters.duration}>
+									{#each generateDuration(video) as option}
+										<option value={option}>{option}</option>
+									{/each}
+								</select>
+							</div>
+						</div>
+
+						<div class="setting_div">
+							<div class="same_line">
+								<h2 class="setting_name">Features:</h2>
+
+								<MultiSelect bind:selected={video.features} options={generateFeatures(video)} />
+							</div>
+						</div>
 
 						<h1 class="setting_discloser">Account list</h1>
 

@@ -32,12 +32,47 @@ async function updatePremiumRank(){
     }
 
     global.premium = isPremium;
+    global.checkedStatus = true;
+}
+
+async function updateFreeRank(){
+    let hasFreeKey = false
+    let free_api_key = settings.free_api_key
+
+    if(free_api_key){
+        try {
+            let status = (await axios.get(`https://www.bloxxy.net/api/linkvertise/status/${free_api_key}`)).data
+    
+            if(status){
+                hasFreeKey = true
+
+                await dbRunWithValues(`INSERT OR REPLACE INTO free_cache (value, date) VALUES (?, ?)`, ["true", Date.now()]);
+            } else {
+                await dbRunWithValues(`INSERT OR REPLACE INTO free_cache (value, date) VALUES (?, ?)`, ["false", Date.now()]);
+            }
+        } catch (err){
+            console.error(err)
+            const cacheData = await dbGet('SELECT * FROM free_cache LIMIT 1');
+
+            if (cacheData) {
+                if((cacheData.date + (1000 * 60 * 60 * 24 * 3)) >= Date.now() && cacheData.value == "true"){
+                    hasFreeKey = true;
+                }
+            } 
+        }
+    }
+
+    global.free_key = hasFreeKey;
+    global.checkedStatus = true;
 }
 
 setTimeout(updatePremiumRank, 1000 * 60 * 15)
+setTimeout(updateFreeRank, 1000 * 60 * 15)
 updatePremiumRank()
+updateFreeRank()
 
-let lastKey = settings.api_key
+let lastKey = settings.api_key;
+let lastFreeKey = settings.free_api_key;
 
 global.premiumOnlyTitle = "This feature requires you to be a patreon subscriber"
 global.premiumText = 
@@ -47,10 +82,16 @@ After doing so, follow the "Full feature access" instructions in the settings ta
 module.exports = async (req, res) => {
     settings = req.body
     settings.api_key = settings.api_key.trim()
+    settings.free_api_key = settings.free_api_key.trim()
 
     if(lastKey !== settings.api_key){
         lastKey = settings.api_key
         updatePremiumRank()
+    }
+
+    if(lastFreeKey !== settings.free_api_key){
+        lastFreeKey = settings.free_api_key
+        updateFreeRank()
     }
 
     if(!global.premium){

@@ -1,25 +1,19 @@
-import { Server } from "socket.io"
-import express from "express"
-import http from "http"
-import session from "express-session"
-import Sqlite3 from "sqlite3"
-import SQLiteStore  from "connect-sqlite3"
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { v4 } from 'uuid';
-import { NodeVM } from 'vm2';
-import { existsSync, mkdir, mkdirSync, readFileSync, readdirSync, writeFileSync } from "fs"
-import { promisify } from "util"
+const { Server } = require("socket.io");
+const express = require("express");
+const http = require("http");
+const session = require("express-session");
+const Sqlite3 = require("sqlite3");
+const SQLiteStore = require("connect-sqlite3");
+const path = require("path");
+const { v4 } = require("uuid");
+const { NodeVM } = require("vm2");
+const { existsSync, lstatSync, mkdir, mkdirSync, readFileSync, readdirSync, writeFileSync } = require("fs");
 
-import { createRequire } from "module";
-import { defaultServerInfo } from "./vars.js"
-
-global.__filename = fileURLToPath(import.meta.url);
-global.__dirname = path.dirname(__filename);
-global.require = createRequire(import.meta.url);
+const defaultServerInfo = require("./vars.cjs").defaultServerInfo;
 
 
-const db = new Sqlite3.Database(path.join(__dirname, `../database.db3`))
+
+const db = new Sqlite3.Database(path.join(app_path, `../database.db3`))
 const sqlitestore = SQLiteStore(session)
 
 const app = express();
@@ -248,6 +242,7 @@ async function initDatabase(){
         dbRun("CREATE TABLE IF NOT EXISTS keys (key TEXT, status INTEGER, UNIQUE(key))"),
         
         dbRun(`CREATE TABLE IF NOT EXISTS premium_cache (value TEXT, date INTEGER)`),
+        dbRun(`CREATE TABLE IF NOT EXISTS free_cache (value TEXT, date INTEGER)`),
     ])
 
     await Promise.all([
@@ -381,6 +376,11 @@ for (let [key, value] of Object.entries(makeGlobal)) {
 
 for (let extensionPath of readdirSync(path.join(__dirname, "../../extensions"))) {
     extensionPath = path.join(__dirname, "../../extensions", extensionPath)
+
+    if(!lstatSync(extensionPath).isDirectory()){
+        continue;
+    }
+
     let extensioninfo = JSON.parse(readFileSync(path.join(extensionPath, "info.json")))
     let extensionVM = new NodeVM({
         sandbox: {

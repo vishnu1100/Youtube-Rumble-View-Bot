@@ -208,10 +208,10 @@
 
 				<div class="same_line premium_line">
 					<p>
-						To get access to the full list of features, make an account on <a
+						To get access to the full list of features, make an account on <a class="patreon" 
 							href="https://www.bloxxy.net/account">our website</a
 						>, log in with your patreon and make a 10$ subscription on our
-						<a href="https://www.patreon.com/Bloxxy213/membership">patreon</a>.
+						<a class="patreon" href="https://www.patreon.com/Bloxxy213/membership">patreon</a>.
 					</p>
 				</div>
 
@@ -400,5 +400,11 @@
 		.settings_container {
 			flex: 1 1 0;
 		}
+	}
+
+	.patreon {
+		font-size: 1.5rem;
+		color: rgb(23, 216, 206);
+		text-decoration: none;
 	}
 </style>

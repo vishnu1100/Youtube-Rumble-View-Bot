@@ -1,47 +1,22 @@
-/*const { app, BrowserWindow, shell } = require('electron')
-const { spawn } = require("child_process")
-const path = require("path")
-require("ansicolor").nice*/
+global.require = require('esm')(module);
 
-import fs from "fs";
-import { app, BrowserWindow, shell } from 'electron';
-import { spawn } from "child_process";
-import * as path from "path";
-import * as ansicolor from "ansicolor";
-ansicolor.nice
+const fs = require("fs");
+const path = require("path");
+const { app, BrowserWindow, shell } = require("electron");
 
-import { fileURLToPath } from 'url';
-let __filename = fileURLToPath(import.meta.url);
-let __dirname = path.dirname(__filename);
+//global.app_path = app.getPath("appData");
+global.app_path = path.join(__dirname);
+
+require("ansicolor").nice
 
 if (!fs.existsSync(path.join(__dirname, "../main/cache/raw_guests"))){
     fs.mkdirSync(path.join(__dirname, "../main/cache/raw_guests"), { recursive: true });
 }
 
-import "../main/server.js";
+require("../main/server.cjs");
+
 
 startFullServer().then(() => {
-    /*server.stdout.on("data", (data) => {
-        data = data.toString().split("\n")
-        let navigated = false;
-
-        for(let dataLine of data){
-            dataLine = dataLine.trim()
-            if(dataLine.length == 0) continue;
-
-            if (dataLine.startsWith("navigate|")) {
-                if(navigated) continue;
-
-                let url = dataLine.split("|")[1]
-    
-                shell.openExternal(url);
-                navigated = true;
-            } else {
-                console.log(`INFO: `.blue + dataLine.trim())
-            }
-        }
-    })*/
-
     const createWindow = () => {
         const win = new BrowserWindow({
             title: "Youtube-View-Bot",

@@ -1,9 +1,16 @@
-import createProxyTester from 'fast-proxy-tester';
-import ytdl from "@distube/ytdl-core"
+let createProxyTester;
 
-import ProxyAgent from 'proxy-agent-v2';
+(async () => {
+    createProxyTester = (await import("fast-proxy-tester")).createProxyTester;
+})();
 
-import { Writable } from "stream"
+
+
+const ytdl = require("@distube/ytdl-core");
+
+const ProxyAgent = require("proxy-agent-v2");
+
+const { Writable } = require("stream");
 let nullPipe = new Writable({ write: (a, b, cb) => cb() })
 nullPipe.setMaxListeners(0)
 
@@ -217,4 +224,4 @@ function checkProxies(proxies) {
     })
 }
 
-export { checkProxies }
+module.exports = { checkProxies }

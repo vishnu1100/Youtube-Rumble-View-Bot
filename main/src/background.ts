@@ -13,6 +13,7 @@ let opts: Options = {
     close_server_on_finish: false,
     headless: false,
     api_key: "",
+    free_api_key: "",
     concurrency: 3,
     concurrencyInterval: 20,
     timeout: 60,
@@ -21,6 +22,8 @@ let opts: Options = {
     stop_spawning_on_overload: true,
     auto_skip_ads: true,
     default_proxy_protocol: "http",
+    send_reminders: true,
+    use_AV1: false
 };
 
 let lastData: Options = deepCopy(opts);

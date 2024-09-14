@@ -1,8 +1,30 @@
 {
   "config": {
-    "forge": "./forge.config.cjs"
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "youtube_rumble_view_bot"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-dmg",
+          "config": {
+            "background": "./main/static/favicon.ico",
+            "format": "ULFO"
+          }
+        }
+      ]
+    }
   },
-  "type": "module",
   "name": "youtube-view-bot",
   "version": "3.1.0",
   "description": "Youtube-View-Bot",
@@ -29,7 +51,7 @@
   "homepage": "https://github.com/JijaProGamer/Youtube-View-Bot#readme",
   "devDependencies": {
     "@bulatdashiev/svelte-slider": "^1.0.3",
-    "@electron-forge/cli": "^6.2.1",
+    "@electron-forge/cli": "^6.4.2",
     "@electron-forge/maker-deb": "^6.4.2",
     "@electron-forge/maker-rpm": "^6.4.2",
     "@electron-forge/maker-squirrel": "^6.4.2",
@@ -39,7 +61,6 @@
     "@electron/rebuild": "^3.6.0",
     "@sveltejs/kit": "^1.0.0",
     "electron": "27.0.2",
-    "electron-builder": "^24.13.3",
     "electron-prebuilt-compile": "8.2.0",
     "electron-rebuild": "^3.2.9",
     "eslint": "^8.28.0",
@@ -54,6 +75,7 @@
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.14.4",
+    "@electron-forge/maker-dmg": "^7.4.0",
     "@sveltejs/adapter-node": "^1.1.4",
     "@sveltejs/adapter-static": "^1.0.5",
     "ansicolor": "^1.1.100",
@@ -62,7 +84,8 @@
     "better-sqlite3-session-store": "^0.1.0",
     "chalk": "^4.0.0",
     "connect-sqlite3": "^0.9.15",
-    "electron-squirrel-startup": "^1.0.0",
+    "electron-squirrel-startup": "^1.0.1",
+    "esm": "^3.2.25",
     "express": "^4.18.2",
     "express-bearer-token": "^2.4.0",
     "express-session": "^1.17.3",
@@ -87,6 +110,6 @@
     "uuid": "^9.0.0",
     "vm2": "^3.9.14",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz",
-    "youtube-selfbot-api": "^4.3.3"
+    "youtube-selfbot-api": "^4.3.5"
   }
 }

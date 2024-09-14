@@ -1,10 +1,21 @@
-import rumble_core from 'rumble-core';
+const rumble_core = require("rumble-core");
 
-import youtubeSelfbotApi from 'youtube-selfbot-api';
-import rumblelfbotApi from 'rumble-selfbot-api';
+/*const youtubeSelfbotApi = require("youtube-selfbot-api");
+const rumblelfbotApi = require("rumble-selfbot-api");
 
 let selfbot_api = new youtubeSelfbotApi()
-let rumble_selfbot_api = new rumblelfbotApi()
+let rumble_selfbot_api = new rumblelfbotApi()*/
+
+let selfbot_api;
+let rumble_selfbot_api;
+
+(async () => {
+    const youtubeSelfbotApi = (await import("youtube-selfbot-api")).selfbot;
+    const rumblelfbotApi = (await import("rumble-selfbot-api")).selfbot;
+    
+    selfbot_api = new youtubeSelfbotApi();
+    rumble_selfbot_api = new rumblelfbotApi();
+})();
 
 let accountOnlyTypes = ["suggestions", "subscribers"]
 
@@ -44,14 +55,14 @@ function generateJob(work_video, work_proxies, video_id, videoInfo, isRumble, wo
     let job = {}
 
     let filters = {}
-    let keyword = random([...work_video.keywords, videoInfo.title])
 
     if (work_video.filters.duration !== "any") filters.duration = work_video.filters.duration.split(" minutes")[0].replace(" ", "_")
     if (work_video.filters.sort_by !== "relevance") filters.sort_by = work_video.filters.sort_by.replace(" ", "_")
     if (work_video.filters.upload_date !== "any") filters.upload_date = work_video.filters.upload_date.replace(" ", "_")
     if (work_video.filters.features.length > 0) filters.features = work_video.filters.features
 
-    job.keyword_chosen = keyword || ""
+    job.referer = random(work_video.referrals)
+    job.keyword_chosen = random([...work_video.keywords, videoInfo.title])
     job.video_info = videoInfo
     job.filters = filters
     job.watch_type = random(available_watch_types)
@@ -129,4 +140,4 @@ async function generateJobs(work_video, work_proxies) {
         .map(({ value }) => value)
 }
 
-export { generateJobs }
+module.exports = { generateJobs }

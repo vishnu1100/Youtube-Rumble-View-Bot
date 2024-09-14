@@ -16,6 +16,7 @@ export type Options = {
     server_port: number,
     
     api_key: string,
+    free_api_key: string,
     default_proxy_protocol: string,
 
     use_AV1: boolean,

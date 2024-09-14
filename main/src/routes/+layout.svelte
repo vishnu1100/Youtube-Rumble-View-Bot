@@ -250,6 +250,35 @@
 	window.addEventListener('unhandledrejection', function (event) {
 		socket.emit('log_message', { type: 'error', message: `Promise unhandled rejection: ${event.reason}` });
 	});
+
+	let isFreeLoggedIn = false;
+	let isPremiumLoggedIn = false;
+	let checkedStatus = false;
+
+	function navigate(){
+		if(!(isFreeLoggedIn || isPremiumLoggedIn) && checkedStatus){
+			if(!window.location.href.includes("/manage_key")){
+				window.location.href = "/manage_key";
+			}
+		}
+	}
+
+	async function checkPremiumLoginStatus(){
+		let logedInData = (await axios.get(`/api/patreon_status`)).data
+		isPremiumLoggedIn = logedInData.status;
+		checkedStatus = logedInData.checkedStatus;
+	}
+
+	async function checkFreeLoginStatus(){
+		let logedInData = (await axios.get(`/api/free_status`)).data
+		isFreeLoggedIn = logedInData.status;
+	}
+
+	setInterval(async () => {
+		await checkFreeLoginStatus().catch(err => {});
+		await checkPremiumLoginStatus().catch(err => {});
+		navigate();
+	}, 2500);
 </script>
 
 <ReminderMessage

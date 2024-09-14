@@ -38,7 +38,9 @@
 
 			<input type="password" id="password2" bind:value={password2} />
 
-			<button id="login" {disabled} on:click|preventDefault={publishPassword}>Set password</button>
+			<div id="login_holder">
+				<button id="login" {disabled} on:click|preventDefault={publishPassword}>Set password</button>
+			</div>
 		</form>
 
 		<div id="extra_holder">
@@ -102,6 +104,11 @@
 		width: 70%;
 		margin-left: 15%;
 		font-size: 1.7em;
+	}
+
+	#login_holder {
+		display: flex;
+		justify-content: center;
 	}
 
 	#app_title {

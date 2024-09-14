@@ -1,16 +1,13 @@
-import path from 'path';
-import { readdirSync, statSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { to } from 'await-to-js';
-import { v4 } from 'uuid';
+const fs = require("fs");
+const path = require("path");
+
+const { to } = require("await-to-js");
+const { v4 } = require("uuid");
 
 process.setMaxListeners(0)
 
-import './server/init_start.js';
-import './server/init_server.js';
-
-let __filename = fileURLToPath(import.meta.url);
-let __dirname = path.dirname(__filename);
+require("./server/init_start.cjs");
+require("./server/init_server.cjs");
 
 global.routes = {get: {}, post: {}, socket: {}}
 
@@ -20,17 +17,17 @@ async function startFullServer(){
     await getGlobals();
     makeSessionMiddleware();
 
-    initServer()
+    await initServer()
 
     await getStats();
 
-    for (let folder of readdirSync(path.join(__dirname, "/server/api_routes"))) {
-        let stat = statSync(path.join(__dirname, "/server/api_routes", folder))
+    for (let folder of fs.readdirSync(path.join(__dirname, "/server/api_routes"))) {
+        let stat = fs.statSync(path.join(__dirname, "/server/api_routes", folder))
     
         if (stat && stat.isDirectory()) {
             if (!routes[folder]) routes[folder] = []
     
-            for (let route of readdirSync(path.join(__dirname, "/server/api_routes", folder))) {
+            for (let route of fs.readdirSync(path.join(__dirname, "/server/api_routes", folder))) {
                 let routeName = route.split(".")[0]
                 routes[folder][routeName] = require(path.join(__dirname, "/server/api_routes", folder, route))
             }
@@ -70,12 +67,16 @@ io.on("connection", (socket) => {
 
 global.children = []
 
-import createProxyTester from 'fast-proxy-tester';
-let urlTesterInstance = new createProxyTester("", 0)
+let urlTesterInstance;
 
-import { checkProxies } from './server/check_proxies.js';
-import { generateJobs } from './server/generate_jobs.js';
-import { startWorker } from "./server/startWorker.js"
+(async () => {
+    const createProxyTester = (await import("fast-proxy-tester")).createProxyTester;
+    urlTesterInstance = new createProxyTester("", 0);
+})();
+
+const { checkProxies } = require("./server/check_proxies.cjs");
+const { generateJobs } = require("./server/generate_jobs.cjs");
+const startWorker = require("./server/startWorker.cjs");
 
 global.startWorking = startWorking
 global.startWorker = startWorker

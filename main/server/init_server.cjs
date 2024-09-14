@@ -1,15 +1,13 @@
-import express from "express"
-import helmet from 'helmet';
-import bearerToken from 'express-bearer-token';
 
-import { neededRanks } from "./vars.js"
-import { handler } from '../build/handler.js';
+const express = require("express");
+const helmet = require("helmet");
+const bearerToken = require("express-bearer-token");
 
-//await initDatabase();
-//await getGlobals();
-//await makeSessionMiddleware();
+const neededRanks = require("./vars.cjs").neededRanks;
 
-function initServer(){
+async function initServer(){
+    const { handler } = await import("../build/handler.js");
+
     app.use(helmet({
         contentSecurityPolicy: false,
         crossOriginEmbedderPolicy: false,
@@ -75,7 +73,7 @@ function initServer(){
         if (typeof server_password_global == "undefined") {
             if (lastRoute == "api") {
                 if (subpath !== "change_password")
-                    return res.sendStatus(401)
+                    return res.sendStatus(401);
     
                 return next()
             }
@@ -87,12 +85,16 @@ function initServer(){
             }
         }
 
-        if (statusRequired == 0 || server_password_global == "" || subpath == "login") {
-            return next()
-        }
+        if ((req.session.loggedIn && req.session.server_password == server_password_global) || (statusRequired == 0 || server_password_global == "" || subpath == "login")) {
+            if(!global.premium && !global.free_key){
+                if(subpath == "login" || subpath == "manage_key" || statusRequired == 0 || (lastRoute == "api" && (subpath == "settings" || subpath == "free_status" || subpath == "patreon_status")) ){
+                    return next();
+                }
     
-        if (req.session.loggedIn && req.session.server_password == server_password_global) {
-            next()
+                return res.redirect("/manage_key")
+            } else {
+                return next();
+            }
         } else {
             if (server_password_global.length > 0) {
                 if (lastRoute == "api") {

@@ -1,10 +1,16 @@
-//import { spawn } from "child_process"
-import { default as rumble_selfbot_api } from "rumble-selfbot-api"
-import { default as youtube_selfbot_api } from "youtube-selfbot-api"
-import { to } from "await-to-js"
-import * as path from "path"
-import { v4 } from "uuid"
-import fs from "fs"
+let youtube_selfbot_api;
+let rumble_selfbot_api;
+
+(async () => {
+    youtube_selfbot_api = (await import("youtube-selfbot-api")).selfbot;
+    rumble_selfbot_api = (await import("rumble-selfbot-api")).selfbot;
+})();
+
+
+const { to } = require("await-to-js");
+const { v4 } = require("uuid");
+const path = require("path");
+const fs = require("fs");
 
 function clamp(num, min, max) {
     return num <= min ? min : num >= max ? max : num
@@ -196,6 +202,7 @@ async function startYoutubeWorker(job, worker, browser, wtfp, processErr, resolv
         forceFind: true,
         title: job.keyword_chosen,
         filters: job.filters,
+        referer: job.referer
     }))
 
     if (goto_video_err) return processErr(`Error going to the video: ${goto_video_err}`)
@@ -310,11 +317,7 @@ function startWorker(job, worker, userDataDir, wtfp) {
 
         let botType = job.isRumble ? rumble_selfbot_api : youtube_selfbot_api
 
-        userDataDir = path.join(__dirname, `../cache/raw_guests/${userDataDir}`);
-
-        if(!fs.existsSync(userDataDir)){
-            fs.mkdirSync(userDataDir)
-        }
+        userDataDir = path.join(__dirname, `../../cache/raw_guests/${userDataDir}`);
 
         let bot = new botType({
             headless: settings.headless,
@@ -394,4 +397,4 @@ function startWorker(job, worker, userDataDir, wtfp) {
     })
 }
 
-export { startWorker }
+module.exports = startWorker;
