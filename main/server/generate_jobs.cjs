@@ -43,6 +43,8 @@ function calculateAction(work_video) {
     if (percent3 < subscribePercent) {
         return [percent1 < likePercent ? "like" : "none", "subscribe"]
     }
+
+    return ["none"]
 }
 
 function generateJob(work_video, work_proxies, video_id, videoInfo, isRumble, work_account) {
@@ -93,9 +95,6 @@ function generateJob(work_video, work_proxies, video_id, videoInfo, isRumble, wo
             like: action[0] == "like",
             dislike: action[0] == "dislike",
             subscribe: action[1] == "subscribe",
-            like: action == "like",
-            dislike: action == "dislike",
-            subscribe: action == "subscribe",
             comment: comment,
             likeAt: random(work_video.likeAt[0], work_video.likeAt[1]),
             dislikeAt: random(work_video.dislikeAt[0], work_video.dislikeAt[1]),
